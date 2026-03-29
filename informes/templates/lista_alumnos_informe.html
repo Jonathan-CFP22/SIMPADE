@@ -1,0 +1,163 @@
+{% extends 'head.html' %}
+
+{% block content %}
+<div class="container mt-5">
+
+    {% if messages %}
+    {% for message in messages %}
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert">
+        {{ message }}
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold text-primary">
+                <i class="bi bi-card-checklist"></i> Calificaciones: {{ trimestre }}° Trimestre
+            </h2>
+            <h5 class="text-secondary">
+                {{ asignacion.materia.nombre }} | <span class="badge bg-dark">{{ asignacion.division.curso.nombre }} "{{ asignacion.division.nombre }}"</span>
+            </h5>
+            <p class="text-muted small mb-0"><i class="bi bi-building"></i> {{ asignacion.division.institucion.nombre }}
+            </p>
+        </div>
+        <div class="col-md-4 text-md-end mt-3 mt-md-0 d-flex align-items-center justify-content-md-end">
+            <a href="{% url 'panel_docente' %}" class="btn btn-outline-secondary shadow-sm">
+                <i class="bi bi-arrow-left"></i> Volver al Panel
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow border-0 border-start border-4 border-info">
+    <div class="accordion" id="accordionTemas">
+        <div class="accordion-item border-0">
+            <h2 class="accordion-header" id="headingTemas">
+                <button class="accordion-button {% if tiene_temas_cargados %}collapsed{% endif %} py-3" type="button" data-bs-toggle="collapse" data-bs-target="#collapseTemas" aria-expanded="{% if tiene_temas_cargados %}false{% else %}true{% endif %}" aria-controls="collapseTemas">
+                    <div class="d-flex justify-content-between align-items-center w-100 me-3">
+                        <h6 class="mb-0 fw-bold text-info"><i class="bi bi-book"></i> Temas dictados en el período</h6>
+                        {% if tiene_temas_cargados %}
+                            <span class="badge bg-success"><i class="bi bi-check-all"></i> Temas Confirmados</span>
+                        {% else %}
+                            <span class="badge bg-warning text-dark">Pendiente de carga</span>
+                        {% endif %}
+                    </div>
+                </button>
+            </h2>
+            
+            <div id="collapseTemas" class="accordion-collapse collapse {% if not tiene_temas_cargados %}show{% endif %}" aria-labelledby="headingTemas" data-bs-parent="#accordionTemas">
+                <div class="accordion-body bg-light">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <div class="row">
+                            {% for unidad in unidades_materia %}
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="p-3 bg-white border rounded shadow-sm h-100">
+                                    <h6 class="fw-bold text-dark border-bottom pb-2">Unidad {{ unidad.nro_unidad }}</h6>
+
+                                    {% for tema in unidad.temas_unidad.all %}
+                                    <div class="form-check mt-2">
+                                        <input class="form-check-input border-secondary" type="checkbox" name="temas_dados" value="{{ tema.id }}" id="tema_{{ tema.id }}" 
+                                               {% if tema.id in temas_dados_ids %}checked{% endif %} 
+                                               {% if tiene_temas_cargados %}disabled{% endif %}> <label class="form-check-label small {% if tiene_temas_cargados %}text-muted{% else %}text-dark{% endif %}" for="tema_{{ tema.id }}">
+                                            {{ tema.nombre_tema }}
+                                        </label>
+                                    </div>
+                                    {% empty %}
+                                    <p class="small text-danger fst-italic mt-2">Sin temas disponibles.</p>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                            {% empty %}
+                            <div class="col-12 text-center py-3 text-muted">
+                                La institución aún no cargó el programa de estudios.
+                            </div>
+                            {% endfor %}
+                        </div>
+
+                        {% if unidades_materia and not tiene_temas_cargados %}
+                        <div class="text-end mt-3">
+                            <button type="submit" class="btn btn-info text-white shadow-sm fw-bold"
+                                onclick="return confirm('ATENCIÓN: Una vez guardados, los temas no se podrán modificar. ¿Estás seguro?');">
+                                <i class="bi bi-save"></i> Guardar Temas Definitivamente
+                            </button>
+                        </div>
+                        {% endif %}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="card shadow border-0">
+                <div class="card-header bg-light py-3">
+                    <h6 class="mb-0 fw-bold text-muted text-uppercase">Lista de Alumnos</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle mb-0">
+                            <thead class="table-dark">
+                                <tr>
+                                    <th class="ps-4" style="width: 5%;">#</th>
+                                    <th>Alumno</th>
+                                    <th>DNI</th>
+                                    <th class="text-center">Estado</th>
+                                    <th class="text-center pe-4" style="width: 15%;">Acción</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for alumno in alumnos %}
+                                <tr>
+                                    <td class="ps-4 text-muted">{{ forloop.counter }}</td>
+                                    <td class="fw-bold">{{ alumno.usuario.nombre_completo }}</td>
+                                    <td class="text-muted">{{ alumno.usuario.dni }}</td>
+
+                                    <td class="text-center">
+                                        {% if alumno.id in alumnos_con_nota %}
+                                        <span class="badge bg-success rounded-pill px-3 py-2"><i
+                                                class="bi bi-check-circle-fill"></i> Evaluado</span>
+                                        {% else %}
+                                        <span class="badge bg-warning text-dark rounded-pill px-3 py-2"><i
+                                                class="bi bi-hourglass-split"></i> Pendiente</span>
+                                        {% endif %}
+                                    </td>
+
+                                    <td class="text-center pe-4">
+                                        {% if alumno.id in alumnos_con_nota %}
+                                        <button class="btn btn-sm btn-outline-success" disabled>Completado</button>
+                                        {% else %}
+                                        {% if tiene_temas_cargados %}
+                                        <a href="{% url 'evaluar_alumno' asignacion.id trimestre alumno.id %}"
+                                            class="btn btn-sm btn-primary shadow-sm">
+                                            <i class="bi bi-pencil-square"></i> Evaluar
+                                        </a>
+                                        {% else %}
+                                        <button class="btn btn-sm btn-secondary shadow-sm" disabled
+                                            title="Debe guardar los temas primero">
+                                            <i class="bi bi-lock-fill"></i> Evaluar
+                                        </button>
+                                        {% endif %}
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="5" class="text-center py-5 text-muted">
+                                        <i class="bi bi-person-x fs-1 d-block mb-2"></i> No hay alumnos registrados.
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,309 @@
+
+{# --- MODALES (FUERA DE LOS TABS) --- #}
+
+<div class="modal fade" id="modalDivision" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'crear_division' %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5>Nueva División</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label fw-bold small">Año / Curso</label>
+                <select name="curso" class="form-select mb-3" required>
+                    {% for c in cursos %}<option value="{{ c.id }}">{{ c.nombre }}</option>{% endfor %}
+                </select>
+                <label class="form-label fw-bold small">Nombre de División</label>
+                <input type="text" name="nombre" class="form-control mb-3" placeholder="Ej: A, B, Única" required>
+                <label class="form-label fw-bold small">Institución Sede</label>
+                <select name="institucion" class="form-select" required>
+                    {% for i in instituciones %}<option value="{{ i.id }}">{{ i.nombre }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="modal-footer"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i>
+                    Guardar</button></div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalMat" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'add_materia' %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5>Nueva Materia</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label small fw-bold">Nombre</label>
+                <input type="text" name="nombre" class="form-control mb-3" required>
+                <label class="form-label small fw-bold">Orientación</label>
+                <select name="orientacion" class="form-select" required>
+                    {% for valor, etiqueta in orientaciones %}<option value="{{ valor }}">{{ etiqueta }}</option>{%endfor %}
+                </select>
+            </div>
+            <div class="modal-footer"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i>
+                    Guardar</button></div>
+        </form>
+    </div>
+</div>
+
+{% for d in docentes %}
+<div class="modal fade" id="modalEditDocente{{ d.id }}" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form method="POST" action="{% url 'mod_docente' d.usuario.dni %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Editar Docente: {{ d.usuario.nombre_completo }}</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold text-muted">DNI (No editable)</label>
+                        <input type="text" class="form-control bg-light" value="{{ d.usuario.dni }}" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Nombre Completo</label>
+                        <input type="text" name="nombre" class="form-control" value="{{ d.usuario.nombre_completo }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Email</label>
+                        <input type="email" name="email" class="form-control" value="{{ d.usuario.email }}" required>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label small fw-bold">Nueva Clave (Opcional)</label>
+                        <input type="text" name="clave" class="form-control" placeholder="Actual: {{ d.usuario.clave }}">
+                        <small class="text-muted">Dejar vacío para mantener la actual.</small>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-success px-4">Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+{% for i in instituciones %}
+<div class="modal fade" id="modalEditInst{{ i.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'mod_institucion' i.id %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title">Editar Institución</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Nombre de la Institución</label>
+                    <input type="text" name="nombre" class="form-control" value="{{ i.nombre }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Dirección</label>
+                    <input type="text" name="direccion" class="form-control" value="{{ i.direccion }}">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-success">
+                    <i class="bi bi-save"></i> Guardar
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+{% for m in alumnos %}
+<div class="modal fade" id="modalEditAlumno{{ m.id }}" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'mod_alumno' m.id %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header bg-primary text-light">
+                <h5 class="modal-title"><i class="bi bi-pencil-square"></i> Editar Alumno: {{ m.usuario.nombre_completo }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-muted">DNI (No editable)</label>
+                    <input type="text" class="form-control bg-light" value="{{ m.usuario.dni }}" readonly>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Nombre Completo</label>
+                    <input type="text" name="nombre" class="form-control" value="{{ m.usuario.nombre_completo }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">División / Curso</label>
+                    <select name="division" class="form-select" required>
+                        {% for div in divisiones %}
+                            <option value="{{ div.id }}" {% if div.id == m.division.id %}selected{% endif %}>
+                                {{ div.curso.nombre }} "{{ div.nombre }}" - {{ div.institucion.nombre }}
+                            </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label small fw-bold">Nueva Clave (Opcional)</label>
+                    <input type="text" name="clave" class="form-control" placeholder="Actual: {{ m.usuario.clave }}">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-success"><i class="bi bi-save"></i> Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endfor %}
+
+<div class="modal fade" id="modalDoc" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'reg_docente_cp' %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5>Nuevo Docente</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" name="dni" minlength="8" maxlength="8" class="form-control mb-2" placeholder="DNI"
+                    required>
+                <input type="text" name="nombre" class="form-control mb-2" placeholder="Nombre Completo" required>
+                <input type="email" name="email" class="form-control mb-2" placeholder="Email" required>
+                <input type="password" name="clave" class="form-control mb-2" placeholder="Clave inicial" required>
+                <select name="institucion" class="form-select" required>
+                    <option value="" disabled selected>Seleccione Sede...</option>
+                    {% for inst in instituciones %}<option value="{{ inst.id }}">{{ inst.nombre }}</option>{% endfor %}
+                </select>
+            </div>
+            <div class="modal-footer"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i>
+                    Guardar</button></div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalAsignarDocente" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-md">
+        <form method="POST" action="{% url 'asignar_docente' %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title"><i class="bi bi-person-plus"></i> Asignar Materia a Docente</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4">
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">1. Seleccionar Docente</label>
+                    <select name="docente" class="form-select select2-modal" required>
+                        <option value="">Elija un docente...</option>
+                        {% for d in docentes %}
+                        <option value="{{ d.usuario.dni }}">
+                            {{ d.usuario.nombre_completo }} (DNI: {{ d.usuario.dni }})
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">2. Seleccionar Materia</label>
+                    <select name="materia" class="form-select" required>
+                        <option value="">Elija una materia...</option>
+                        {% for m in materias %}
+                        <option value="{{ m.id }}">{{ m.nombre }} - {{ m.get_orientacion_display }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-bold small">3. Seleccionar Curso y División</label>
+                    <select name="division" class="form-select select2-modal" required>
+                        <option value="">Elija curso/división...</option>
+                        {% regroup divisiones by institucion as institucion_list %}
+                        {% for inst in institucion_list %}
+                        <optgroup label="🏫 {{ inst.grouper.nombre }}">
+                            {% for div in inst.list %}
+                            <option value="{{ div.id }}">
+                                {{ div.curso.nombre }} "{{ div.nombre }}"
+                            </option>
+                            {% endfor %}
+                        </optgroup>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="mb-0">
+                    <label class="form-label fw-bold small">Ciclo Lectivo</label>
+                    <input type="number" name="ciclo" class="form-control" value="2026" required>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-success">Confirmar Asignación</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalInst" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'crear_inst' %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5>Nueva Institución</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" name="nombre" class="form-control mb-2" placeholder="Nombre" required>
+                <input type="text" name="direccion" class="form-control" placeholder="Dirección">
+            </div>
+            <div class="modal-footer"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i>
+                    Guardar</button></div>
+        </form>
+    </div>
+</div>
+
+<div class="modal fade" id="modalCurso" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'crear_curso' %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5>Nuevo Curso (Año)</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <input type="text" name="nombre" class="form-control" placeholder="Ej: 1ro, 2do" required>
+            </div>
+            <div class="modal-footer"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i>
+                    Guardar</button></div>
+        </form>
+    </div>
+</div>
+<div class="modal fade" id="modalAlumnos" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{% url 'add_alumno' %}" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5>Nuevo Alumno</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <label class="form-label fw-bold small text-muted">DNI (Sin puntos)</label>
+                <input type="text" name="dni" minlength="8" maxlength="8" class="form-control" required>
+                <label class="form-label fw-bold small text-muted">Contraseña</label>
+                <input type="password" name="clave" class="form-control" required>
+                <label class="form-label fw-bold small text-muted">Nombre y Apellido Completos</label>
+                <input type="text" name="nombre_completo" class="form-control" required>
+                <label class="form-label fw-bold small text-muted">Email</label>
+                <input type="email" name="email" class="form-control" required>
+                <label class="form-label fw-bold small text-muted">Asignar a Curso y División</label>
+                <select name="division" class="form-select" required>
+                    <option value="">Seleccione dónde estudiará...</option>
+                    {% for div in divisiones %}
+                    <option value="{{ div.id }}">
+                        {{ div.curso.nombre }} "{{ div.nombre }}" - {{ div.institucion.nombre }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="modal-footer"><button type="submit" class="btn btn-primary"><i class="bi bi-save"></i> Guardar</button></div>
+        </form>
+    </div>
+</div>

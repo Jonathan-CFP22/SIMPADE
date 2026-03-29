@@ -1,0 +1,215 @@
+{% extends 'head.html' %}
+
+{% block content %}
+<div class="container mt-4 mb-5">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2 class="fw-bold text-primary">
+                <i class="bi bi-person-check"></i> Evaluando a: {{ alumno.usuario.nombre_completo }}
+            </h2>
+            <h5 class="text-secondary">
+                {{ asignacion.materia.nombre }} | {{ trimestre }}° Trimestre
+            </h5>
+            <p class="text-muted small mb-0">
+                Curso: {{ asignacion.division.curso.nombre }} "{{ asignacion.division.nombre }}" - DNI: {{ alumno.usuario.dni }}
+            </p>
+        </div>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        
+        <div class="card shadow-sm border-0 mb-4">
+            <div class="card-header bg-dark text-white py-3">
+                <h6 class="mb-0"><i class="bi bi-table"></i> Detalle de Evaluación por Temas</h6>
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover table-bordered mb-0 align-middle" style="min-width: 1200px;">
+                        <thead class="table-light text-center align-middle small">
+                            <tr>
+                                <th style="width: 15%;">Tema Evaluado</th>
+                                <th style="width: 6%;">{% now "d/m/Y" %}</th>
+                                <th style="width: 6%;">TPI</th>
+                                <th style="width: 8%;">% Temas</th>
+                                <th style="width: 10%;">Alcance</th>
+                                <th style="width: 15%;">Observación</th>
+                                <th style="width: 8%;">Reconoce Concepto</th>
+                                <th style="width: 8%;">Utiliza Contenido</th>
+                                <th style="width: 8%;">Contextualiza Uso</th>
+                                <th style="width: 8%;">% Rúbrica</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for tema in temas_disponibles %}
+                            <tr>
+                                <td class="fw-bold text-secondary small">{{ tema.nombre_tema }}</td>
+                                
+                                <td>
+                                    <select class="form-select form-select-sm border-secondary text-center selector-evaluacion select-fecha" name="evaluado_{{ tema.id }}" data-tema-id="{{ tema.id }}">
+                                        <option value="NO" selected>No</option>
+                                        <option value="SI">Sí</option>
+                                    </select>
+                                </td>
+
+                                <td>
+                                    <select class="form-select form-select-sm border-secondary text-center selector-evaluacion select-tpi" name="tpi_{{ tema.id }}" id="tpi_{{ tema.id }}" data-tema-id="{{ tema.id }}">
+                                        <option value="NO" selected>No</option>
+                                        <option value="SI">Sí</option>
+                                    </select>
+                                </td>
+                                
+                                {% if forloop.first %}
+                                <td rowspan="{{ temas_disponibles|length }}" class="text-center align-middle bg-light border-start border-end">
+                                    <div class="d-flex flex-column align-items-center justify-content-center h-100">
+                                        <h3 id="porcentaje_total" class="fw-bold text-danger mb-0">0%</h3>
+                                        <span class="small text-muted mt-1" style="font-size: 0.75rem;">Progreso</span>
+                                    </div>
+                                    <input type="hidden" name="porcentaje_final" id="input_porcentaje_final" value="0">
+                                </td>
+                                {% endif %}
+                                
+                                <td>
+                                    <select class="form-select form-select-sm border-primary" name="estado_{{ tema.id }}">
+                                        <option value="EN_PROCESO">En proceso</option>
+                                        <option value="ALCANZADO">Alcanzado</option>
+                                    </select>
+                                </td>
+                                
+                                <td>
+                                    <input type="text" class="form-control form-control-sm" name="observacion_{{ tema.id }}" placeholder="Ej: Falta repasar...">
+                                </td>
+
+                                <td>
+                                    <select class="form-select form-select-sm border-secondary text-center selector-rubrica" name="reconoce_{{ tema.id }}">
+                                        <option value="NO" selected>No</option>
+                                        <option value="SI">Sí</option>
+                                    </select>
+                                </td>
+
+                                <td>
+                                    <select class="form-select form-select-sm border-secondary text-center selector-rubrica" name="utiliza_{{ tema.id }}">
+                                        <option value="NO" selected>No</option>
+                                        <option value="SI">Sí</option>
+                                    </select>
+                                </td>
+
+                                <td>
+                                    <select class="form-select form-select-sm border-secondary text-center selector-rubrica" name="contextualiza_{{ tema.id }}">
+                                        <option value="NO" selected>No</option>
+                                        <option value="SI">Sí</option>
+                                    </select>
+                                </td>
+
+                                {% if forloop.first %}
+                                <td rowspan="{{ temas_disponibles|length }}" class="text-center align-middle bg-light border-start border-end">
+                                    <div class="d-flex flex-column align-items-center justify-content-center h-100">
+                                        <h3 id="porcentaje_rubrica" class="fw-bold text-danger mb-0">0%</h3>
+                                        <span class="small text-muted mt-1" style="font-size: 0.75rem;">Rúbrica</span>
+                                    </div>
+                                    <input type="hidden" name="porcentaje_rubrica_final" id="input_porcentaje_rubrica_final" value="0">
+                                </td>
+                                {% endif %}
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="10" class="text-center py-4 text-muted">
+                                    <i class="bi bi-exclamation-circle fs-4 d-block mb-2"></i>
+                                    No hay temas cargados para evaluar en este trimestre.
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="row mt-2">
+            <div class="col-12 text-end">
+                <a href="{% url 'lista_alumnos_informe' asignacion.id trimestre %}" class="btn btn-outline-secondary btn-lg me-2 px-4 shadow-sm">
+                    Cancelar
+                </a>
+                <button type="submit" class="btn btn-primary btn-lg px-5 shadow-sm" {% if not temas_disponibles %}disabled{% endif %}>
+                    <i class="bi bi-save"></i> Guardar Informe
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // --- 1. LÓGICA PARA EL % DE TEMAS (FECHA Y TPI) ---
+        const triggersTemas = document.querySelectorAll('.selector-evaluacion');
+        const filasTemas = document.querySelectorAll('.select-fecha'); 
+        const porcentajeTemasDisplay = document.getElementById('porcentaje_total');
+        const inputOcultoTemas = document.getElementById('input_porcentaje_final');
+
+        function calcularPorcentajeTemas() {
+            if (filasTemas.length === 0) return;
+            
+            let temasAprobados = 0;
+            
+            filasTemas.forEach(selectFecha => {
+                const temaId = selectFecha.getAttribute('data-tema-id');
+                const selectTpi = document.querySelector(`.select-tpi[data-tema-id="${temaId}"]`);
+                
+                // Si la fecha es "Sí", bloqueamos el TPI
+                if (selectFecha.value === 'SI') {
+                    selectTpi.disabled = true;
+                    selectTpi.value = 'NO'; 
+                } else {
+                    selectTpi.disabled = false; 
+                }
+
+                if (selectFecha.value === 'SI' || selectTpi.value === 'SI') {
+                    temasAprobados++;
+                }
+            });
+
+            const porcentaje = Math.round((temasAprobados / filasTemas.length) * 100);
+            porcentajeTemasDisplay.textContent = porcentaje + '%';
+            inputOcultoTemas.value = porcentaje;
+            
+            if (porcentaje >= 70) porcentajeTemasDisplay.className = 'fw-bold text-success mb-0';
+            else if (porcentaje >= 40) porcentajeTemasDisplay.className = 'fw-bold text-warning mb-0';
+            else porcentajeTemasDisplay.className = 'fw-bold text-danger mb-0';
+        }
+
+        triggersTemas.forEach(trigger => trigger.addEventListener('change', calcularPorcentajeTemas));
+        calcularPorcentajeTemas();
+
+        // --- 2. LÓGICA PARA EL % DE RÚBRICA ---
+        const triggersRubrica = document.querySelectorAll('.selector-rubrica');
+        const porcentajeRubricaDisplay = document.getElementById('porcentaje_rubrica');
+        const inputOcultoRubrica = document.getElementById('input_porcentaje_rubrica_final');
+
+        function calcularPorcentajeRubrica() {
+            if (triggersRubrica.length === 0) return;
+            
+            let rubricasAprobadas = 0;
+            
+            // Contamos cuántos "SI" hay en total en todas las columnas de rúbrica
+            triggersRubrica.forEach(select => {
+                if (select.value === 'SI') {
+                    rubricasAprobadas++;
+                }
+            });
+
+            // El total posible es la cantidad de selects de rúbrica (3 por cada tema)
+            const porcentaje = Math.round((rubricasAprobadas / triggersRubrica.length) * 100);
+            
+            porcentajeRubricaDisplay.textContent = porcentaje + '%';
+            inputOcultoRubrica.value = porcentaje;
+            
+            if (porcentaje >= 70) porcentajeRubricaDisplay.className = 'fw-bold text-success mb-0';
+            else if (porcentaje >= 40) porcentajeRubricaDisplay.className = 'fw-bold text-warning mb-0';
+            else porcentajeRubricaDisplay.className = 'fw-bold text-danger mb-0';
+        }
+
+        triggersRubrica.forEach(trigger => trigger.addEventListener('change', calcularPorcentajeRubrica));
+        calcularPorcentajeRubrica();
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,169 @@
+{% extends 'head.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    {% if messages %}
+    <div class="row mb-3">
+        <div class="col-12">
+            {% for message in messages %}
+            <div class="alert alert-{% if message.tags == 'error' %}danger{% else %}{{ message.tags }}{% endif %} alert-dismissible fade show shadow-sm"
+                role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+    <div class="row mb-4 align-items-center">
+        <div class="col-md-8">
+            <h2 class="fw-bold text-success"><i class="bi bi-journal-bookmark"></i> Gestión de Temarios</h2>
+            <p class="text-muted">Crea las unidades y temas que los docentes usarán para su Libro de Temas.</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <a href="{% url 'cp_admin' %}" class="btn btn-outline-secondary"><i class="bi bi-arrow-left"></i> Volver al
+                Panel</a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-4">
+
+            <div class="card shadow-sm border-0 mb-4">
+                <div class="card-header bg-dark text-white">
+                    <h6 class="mb-0"><i class="bi bi-folder-plus"></i> Nueva Unidad</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="crear_unidad">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Materia</label>
+                            <select name="materia_id" class="form-select" required>
+                                <option value="">Seleccione materia...</option>
+                                {% for mat in materias_simples %}
+                                <option value="{{ mat.id }}">{{ mat.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-4">
+                                <label class="form-label small fw-bold">Nro</label>
+                                <input type="number" name="nro_unidad" class="form-control" placeholder="Ej: 1" required
+                                    min="1">
+                            </div>
+                            <div class="col-8">
+                                <label class="form-label small fw-bold">Nombre de la Unidad</label>
+                                <input type="text" name="nombre_unidad" class="form-control" placeholder="Ej: Álgebra"
+                                    required>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary w-100">Crear Unidad</button>
+                    </form>
+                </div>
+            </div>
+
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-info text-dark">
+                    <h6 class="mb-0 fw-bold"><i class="bi bi-file-earmark-plus"></i> Nuevo Tema</h6>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="crear_tema">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">¿A qué Unidad pertenece?</label>
+                            <select name="unidad_id" class="form-select" required>
+                                <option value="">Seleccione unidad...</option>
+                                {% for mat in materias_con_temarios %}
+                                <optgroup label="{{ mat.nombre }}">
+                                    {% for uni in mat.unidad_set.all|dictsort:"nro_unidad" %}
+                                    <option value="{{ uni.id }}">U{{ uni.nro_unidad }}: {{ uni.nombre_unidad }}</option>
+                                    {% endfor %}
+                                </optgroup>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold">Nombre del Tema</label>
+                            <input type="text" name="nombre_tema" class="form-control"
+                                placeholder="Ej: Ecuaciones de 1er grado" required>
+                        </div>
+                        <button type="submit" class="btn btn-info w-100 fw-bold text-dark">Crear Tema</button>
+                    </form>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="col-md-8">
+            <div class="card shadow-sm border-0">
+                <div class="card-header bg-light">
+                    <h6 class="mb-0 fw-bold text-muted text-uppercase">Temarios Actuales por Materia</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="accordion accordion-flush" id="accordionMaterias">
+                        {% for mat in materias_con_temarios %}
+                        <div class="accordion-item">
+                            <h2 class="accordion-header" id="heading-{{ mat.id }}">
+                                <button class="accordion-button collapsed fw-bold text-primary" type="button"
+                                    data-bs-toggle="collapse" data-bs-target="#collapse-{{ mat.id }}">
+                                    {{ mat.nombre }}
+                                    <span class="badge bg-secondary ms-2">{{ mat.unidad_set.count }} Unidades</span>
+                                </button>
+                            </h2>
+                            <div id="collapse-{{ mat.id }}" class="accordion-collapse collapse"
+                                data-bs-parent="#accordionMaterias">
+                                <div class="accordion-body bg-light">
+                                    {% for uni in mat.unidad_set.all|dictsort:"nro_unidad" %}
+                                    <div class="mb-3 p-3 bg-white border rounded shadow-sm">
+
+                                        <div
+                                            class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-2">
+                                            <h6 class="fw-bold text-dark mb-0">
+                                                Unidad {{ uni.nro_unidad }}: {{ uni.nombre_unidad }}
+                                            </h6>
+                                            <a href="{% url 'eliminar_unidad' uni.id %}"
+                                                class="btn btn-sm btn-outline-danger py-0 px-2"
+                                                title="Eliminar Unidad Completa"
+                                                onclick="return confirm('⚠️ ¿Estás seguro? Se eliminará esta unidad y TODOS los temas que contenga adentro.')">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        </div>
+
+                                        <ul class="list-group list-group-flush mb-0 mt-2">
+                                            {% for tema in uni.temas_unidad.all %}
+                                            <li
+                                                class="list-group-item py-1 small text-secondary d-flex justify-content-between align-items-center hover-bg-light">
+                                                <span><i class="bi bi-check2 text-success me-2"></i> {{ tema.nombre_tema }}</span>
+
+                                                <a href="{% url 'eliminar_tema' tema.id %}"
+                                                    class="text-danger opacity-75 text-decoration-none"
+                                                    title="Eliminar tema"
+                                                    onclick="return confirm('¿Eliminar este tema?')">
+                                                    <i class="bi bi-x-circle-fill"></i>
+                                                </a>
+                                            </li>
+                                            {% empty %}
+                                            <li class="list-group-item py-1 small text-muted fst-italic">No hay temas
+                                                cargados en esta unidad.</li>
+                                            {% endfor %}
+                                        </ul>
+                                    </div>
+                                    {% empty %}
+                                    <div class="text-center text-muted py-3">
+                                        <i class="bi bi-folder-x fs-3 d-block mb-2"></i>
+                                        Esta materia aún no tiene unidades asignadas.
+                                    </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

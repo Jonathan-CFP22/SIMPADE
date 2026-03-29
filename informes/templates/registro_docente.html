@@ -1,0 +1,96 @@
+{% extends 'head.html' %}
+
+{% block extra_css %}
+
+<style>
+    /* Estilo para centrar el captcha */
+    .g-recaptcha {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-success text-white py-3 text-center">
+                    <h5 class="mb-0"><i class="bi bi-person-badge"></i> Registro de Nuevo Docente</h5>
+                </div>
+                
+                <div class="card-body p-4">
+                    
+                    {% if error %}
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        <i class="bi bi-exclamation-triangle-fill"></i> {{ error }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %}
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase">DNI (Sin puntos)</label>
+                            <input type="text" name="dni" class="form-control form-control-lg" 
+                                   placeholder="Ej: 12345678" minlength="8" maxlength="8" required 
+                                   value="{{ dni|default:'' }}">
+                            <div class="form-text">Máximo 8 caracteres numéricos.</div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Nombre Completo</label>
+                            <input type="text" name="nombre" class="form-control form-control-lg" 
+                                   placeholder="Apellido y Nombre" required
+                                   value="{{ nombre|default:'' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Correo Electrónico</label>
+                            <input type="email" name="email" class="form-control form-control-lg" 
+                                   placeholder="correo@ejemplo.com" required
+                                   value="{{ email|default:'' }}">
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Contraseña Inicial</label>
+                            <input type="password" name="clave" class="form-control form-control-lg" 
+                                   placeholder="Cree una clave temporal" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label small fw-bold text-muted text-uppercase">Asignar Sede Principal</label>
+                            <select name="institucion" class="form-select form-select-lg" required>
+                                <option value="" disabled selected>Seleccione una institución...</option>
+                                {% for inst in instituciones %}
+                                    <option value="{{ inst.id }}">{{ inst.nombre }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="g-recaptcha" data-sitekey="6LdulJwsAAAAALJPTeBrDmS8e4G6VHgC3IImnMXb"></div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg shadow-sm">
+                                <i class="bi bi-save"></i> Registrar Docente
+                            </button>
+                            <a href="{% url 'cp_admin' %}" class="btn btn-light border">
+                                <i class="bi bi-arrow-left"></i> Volver al Panel
+                            </a>
+                        </div>
+                    </form>
+
+                </div>
+            </div>
+            
+            <p class="text-center mt-3 text-muted small">
+                El docente podrá cambiar su contraseña una vez que ingrese al sistema.
+            </p>
+        </div>
+    </div>
+</div>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+{% endblock %}

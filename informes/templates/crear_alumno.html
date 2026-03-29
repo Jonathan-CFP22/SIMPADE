@@ -1,0 +1,83 @@
+{% extends 'head.html' %}
+
+{% block extra_css %}
+
+<style>
+    .g-recaptcha {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow border-0">
+                <div class="card-header bg-success text-white py-3">
+                    <h5 class="mb-0 text-center"><i class="bi bi-person-plus"></i> Registrar Nuevo Alumno</h5>
+                </div>
+                <div class="card-body p-4">
+                    
+                    {% if error %}
+                    <div class="alert alert-danger shadow-sm">
+                        <i class="bi bi-exclamation-triangle"></i> {{ error }}
+                    </div>
+                    {% endif %}
+
+                    <form method="POST">
+                        {% csrf_token %}
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">DNI (Sin puntos)</label>
+                                <input type="text" name="dni" minlength="8" maxlength="8" class="form-control" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-bold small text-muted">Contraseña</label>
+                                <input type="password" name="clave" class="form-control" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Nombre y Apellido Completos</label>
+                            <input type="text" name="nombre_completo" class="form-control" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold small text-muted">Email</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold small text-muted">Asignar a Curso y División</label>
+                            <select name="division" class="form-select" required>
+                                <option value="">Seleccione dónde estudiará...</option>
+                                {% for div in divisiones %}
+                                    <option value="{{ div.id }}">
+                                        {{ div.curso.nombre }} "{{ div.nombre }}" - {{ div.institucion.nombre }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="g-recaptcha" data-sitekey="6LdulJwsAAAAALJPTeBrDmS8e4G6VHgC3IImnMXb"></div>
+
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn btn-success btn-lg shadow-sm">
+                                <i class="bi bi-check-circle"></i> Guardar Alumno
+                            </button>
+                            <a href="{% url 'cp_admin' %}" class="btn btn-light border">
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<script src="https://www.google.com/recaptcha/api.js" async defer></script>
+{% endblock %}

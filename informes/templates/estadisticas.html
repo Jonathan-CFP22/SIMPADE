@@ -1,0 +1,80 @@
+{% extends 'head.html' %}
+{% block content %}
+<div class="container-fluid mt-4">
+    <h2 class="text-center fw-bold mb-4">Dashboard Institucional</h2>
+    
+    <div class="row">
+        <div class="col-md-6 mb-4">
+            <div class="card shadow border-0">
+                <div class="card-header bg-primary text-white text-center">
+                    <h5 class="mb-0">Estado de los Alumnos (Personas)</h5>
+                </div>
+                <div class="card-body" style="height: 400px;">
+                    <canvas id="chartAlumnos"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-6 mb-4">
+            <div class="card shadow border-0">
+                <div class="card-header bg-success text-white text-center">
+                    <h5 class="mb-0">Avance de Temas (Contenidos)</h5>
+                </div>
+                <div class="card-body" style="height: 400px;">
+                    <canvas id="chartTemas"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2.0.0"></script>
+
+<script>
+    Chart.register(ChartDataLabels);
+
+    // Configuración base para reutilizar
+    const commonOptions = {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+            legend: { position: 'bottom' },
+            datalabels: {
+                color: '#fff',
+                font: { weight: 'bold', size: 14 },
+                formatter: (value, ctx) => {
+                    const total = ctx.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                    return value > 0 ? `${value} (${((value/total)*100).toFixed(1)}%)` : '';
+                }
+            }
+        }
+    };
+
+    // Gráfico de Alumnos
+    new Chart(document.getElementById('chartAlumnos'), {
+        type: 'pie',
+        data: {
+            labels: {{ labels_alumnos|safe }},
+            datasets: [{
+                data: {{ data_alumnos|safe }},
+                backgroundColor: ['#28a745', '#ffc107', '#6c757d']
+            }]
+        },
+        options: commonOptions
+    });
+
+    // Gráfico de Temas
+    new Chart(document.getElementById('chartTemas'), {
+        type: 'pie', // Podrías probar 'doughnut' aquí para variar
+        data: {
+            labels: {{ labels_temas|safe }},
+            datasets: [{
+                data: {{ data_temas|safe }},
+                backgroundColor: ['#28a745', '#ffc107', '#dc3545', '#17a2b8']
+            }]
+        },
+        options: commonOptions
+    });
+</script>
+{% endblock %}
