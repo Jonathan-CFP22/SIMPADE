@@ -44,4 +44,12 @@ if ($return_var === 0) {
     echo "❌ Error en el despliegue (Código: $return_var).\n";
 }
 
+// Crear la carpeta tmp si no existe por algún motivo
+if (!file_exists("$path/tmp")) {
+    mkdir("$path/tmp", 0755, true);
+}
+
+// "Tocar" el archivo para avisar a LiteSpeed que reinicie Django
 exec("touch $path/tmp/restart.txt");
+
+echo "🚀 Aplicación reiniciada para aplicar cambios de Python.\n";
