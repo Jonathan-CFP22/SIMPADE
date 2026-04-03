@@ -20,7 +20,7 @@ if ($hash !== $payloadHash) {
 echo "Iniciando despliegue...\n";
 exec("cd $path && git checkout $branch && git pull origin $branch 2>&1", $output);
 
-
+exec("cd $path && git pull origin main 2>&1", $output);
 exec("touch $path/tmp/restart.txt"); 
 
 print_r($output);
