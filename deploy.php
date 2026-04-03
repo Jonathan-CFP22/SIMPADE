@@ -43,3 +43,5 @@ if ($return_var === 0) {
 } else {
     echo "❌ Error en el despliegue (Código: $return_var).\n";
 }
+
+exec("touch $path/tmp/restart.txt");
