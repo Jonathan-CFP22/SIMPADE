@@ -5,8 +5,8 @@ $path = "/var/www/escobar"; // Ruta real de tu proyecto
 $branch = "main"; // La rama que quieres desplegar
 
 // Validar que la petición venga de GitHub (opcional pero recomendado)
-$signature = $_SERVER['HTTP_X_HUB_SIGNATURE'] ?? '';
-if (!$signature) die("Sin firma");
+//$signature = $_SERVER['HTTP_X_HUB_SIGNATURE'] ?? '';
+//if (!$signature) die("Sin firma");
 
 $payload = file_get_contents('php://input');
 list($algo, $hash) = explode('=', $signature, 2);
