@@ -4,23 +4,42 @@ $secret = "qweASD*+*36741506"; // Una clave que tú inventes
 $path = "/var/www/escobar"; // Ruta real de tu proyecto
 $branch = "main"; // La rama que quieres desplegar
 
-// Validar que la petición venga de GitHub (opcional pero recomendado)
-//$signature = $_SERVER['HTTP_X_HUB_SIGNATURE'] ?? '';
-//if (!$signature) die("Sin firma");
+// 1. Obtener la firma de GitHub
+$signature = $_SERVER['HTTP_X_HUB_SIGNATURE'] ?? null;
 
-$payload = file_get_contents('php://input');
-list($algo, $hash) = explode('=', $signature, 2);
-$payloadHash = hash_hmac($algo, $payload, $secret);
+// 2. VALIDACIÓN: Solo validamos si existe la firma (Petición de GitHub)
+if ($signature) {
+    $payload = file_get_contents('php://input');
+    $parts = explode('=', $signature, 2);
+    
+    if (count($parts) < 2) {
+        die("Firma mal formateada");
+    }
 
-if ($hash !== $payloadHash) {
-    die("Firma inválida");
+    $algo = $parts[0];
+    $hash = $parts[1];
+
+    if ($hash !== hash_hmac($algo, $payload, $secret)) {
+        die("Firma inválida. Acceso denegado.");
+    }
+} else {
+    // 3. MODO MANUAL: Si lo corres tú por terminal, avisamos pero seguimos
+    echo "--- Ejecución Manual Detectada (Sin firma de GitHub) ---\n";
 }
 
-// Ejecutar el despliegue
-echo "Iniciando despliegue...\n";
-exec("cd $path && git checkout $branch && git pull origin $branch 2>&1", $output);
+// 4. EJECUCIÓN DEL DESPLIEGUE
+echo "Iniciando actualización en: $path\n";
 
-exec("cd $path && git pull origin main 2>&1", $output);
-exec("touch $path/tmp/restart.txt"); 
+// Usamos git reset --hard para asegurar que el servidor sea igual a la nube
+$command = "cd $path && git fetch origin main && git reset --hard origin/main 2>&1";
 
-print_r($output);
+exec($command, $output, $return_var);
+
+// Mostrar el resultado de la consola
+echo implode("\n", $output) . "\n";
+
+if ($return_var === 0) {
+    echo "✅ Despliegue completado con éxito.\n";
+} else {
+    echo "❌ Error en el despliegue (Código: $return_var).\n";
+}
