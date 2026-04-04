@@ -1,60 +1,54 @@
 <?php
-// Aumentar el tiempo de ejecución permitido
-set_time_limit(600);
-// Configuración
-$path = "/var/www/escobar"; // Ruta real de tu proyecto
-$secret = "qweASD*+*36741506"; // Una clave que tú inventes
-$output = shell_exec("cd $path && git pull origin main 2>&1");
-file_put_contents("deploy_log.txt", date('Y-m-d H:i:s') . " - " . $output . "\n", FILE_APPEND);
-echo "Proceso completado. Revisa el log si hubo errores.";
-$branch = "master"; // La rama que quieres desplegar
+// 1. CONFIGURACIÓN
+$path = "/var/www/escobar"; 
+$secret = "qweASD*+*36741506"; // Asegúrate que en GitHub dice exactamente esto en "Secret"
+$log_file = "deploy_log.txt";
 
-// 1. Obtener la firma de GitHub
-$signature = $_SERVER['HTTP_X_HUB_SIGNATURE'] ?? null;
+// 2. VALIDACIÓN DE SEGURIDAD (Debe ir PRIMERO)
+$signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? $_SERVER['HTTP_X_HUB_SIGNATURE'] ?? null;
 
-// 2. VALIDACIÓN: Solo validamos si existe la firma (Petición de GitHub)
 if ($signature) {
     $payload = file_get_contents('php://input');
-    $parts = explode('=', $signature, 2);
-    
-    if (count($parts) < 2) {
-        die("Firma mal formateada");
-    }
+    list($algo, $hash) = explode('=', $signature, 2);
+    $payloadHash = hash_hmac($algo, $payload, $secret);
 
-    $algo = $parts[0];
-    $hash = $parts[1];
-
-    if ($hash !== hash_hmac($algo, $payload, $secret)) {
-        die("Firma inválida. Acceso denegado.");
+    if (!hash_equals($hash, $payloadHash)) {
+        file_put_contents($log_file, date('Y-m-d H:i:s') . " - ERROR: Firma inválida.\n", FILE_APPEND);
+        die("Acceso denegado.");
     }
 } else {
-    // 3. MODO MANUAL: Si lo corres tú por terminal, avisamos pero seguimos
-    echo "--- Ejecución Manual Detectada (Sin firma de GitHub) ---\n";
+    // Si entras tú desde el navegador, te pedirá la firma o fallará. 
+    // Para pruebas manuales desde el navegador, podrías comentar el die() temporalmente.
+    echo "Ejecución manual detectada. ";
 }
 
-// 4. EJECUCIÓN DEL DESPLIEGUE
-echo "Iniciando actualización en: $path\n";
+// 3. RESPUESTA RÁPIDA A CLOUDFLARE/GITHUB (Evita el error 524)
+// Esto le dice a Cloudflare "Ya recibí todo, puedes cerrar la conexión", pero el servidor sigue trabajando.
+ob_start();
+echo "Despliegue iniciado correctamente. Procesando cambios...";
+header("Content-Length: " . ob_get_length());
+header("Connection: close");
+ob_end_flush();
+ob_flush();
+flush();
 
-// Usamos git reset --hard para asegurar que el servidor sea igual a la nube
+// 4. EJECUCIÓN DEL DESPLIEGUE (En segundo plano)
+ignore_user_abort(true); // Seguir aunque se corte la conexión HTTP
+set_time_limit(600);
+
 $command = "cd $path && git fetch origin main && git reset --hard origin/main 2>&1";
+exec($command, $output_array, $return_var);
 
-exec($command, $output, $return_var);
+$output_text = implode("\n", $output_array);
 
-// Mostrar el resultado de la consola
-echo implode("\n", $output) . "\n";
-
-if ($return_var === 0) {
-    echo "✅ Despliegue completado con éxito.\n";
-} else {
-    echo "❌ Error en el despliegue (Código: $return_var).\n";
-}
-
-// Crear la carpeta tmp si no existe por algún motivo
+// 5. REINICIAR DJANGO
 if (!file_exists("$path/tmp")) {
     mkdir("$path/tmp", 0755, true);
+    chown("$path/tmp", "www-data");
 }
+touch("$path/tmp/restart.txt");
 
-// "Tocar" el archivo para avisar a LiteSpeed que reinicie Django
-exec("touch $path/tmp/restart.txt");
-
-echo "🚀 Aplicación reiniciada para aplicar cambios de Python.\n";
+// 6. REGISTRO EN LOG
+$status = ($return_var === 0) ? "ÉXITO" : "ERROR ($return_var)";
+$log_entry = date('Y-m-d H:i:s') . " - [$status] - " . str_replace("\n", " ", $output_text) . "\n";
+file_put_contents($log_file, $log_entry, FILE_APPEND);
