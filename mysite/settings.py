@@ -25,7 +25,9 @@ SECRET_KEY = 'django-insecure-dmy2^m^^^aam@mtd8kxx3koahkd2jgesmtgo4qz%v*syl(_i@*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['appescobar.nebuletec.com', 
+    '127.0.0.1', 
+    'localhost',]
 
 
 # Application definition
