@@ -1,8 +1,13 @@
 <?php
+// Aumentar el tiempo de ejecución permitido
+set_time_limit(600);
 // Configuración
-$secret = "qweASD*+*36741506"; // Una clave que tú inventes
 $path = "/var/www/escobar"; // Ruta real de tu proyecto
-$branch = "main"; // La rama que quieres desplegar
+$secret = "qweASD*+*36741506"; // Una clave que tú inventes
+$output = shell_exec("cd $path && git pull origin main 2>&1");
+file_put_contents("deploy_log.txt", date('Y-m-d H:i:s') . " - " . $output . "\n", FILE_APPEND);
+echo "Proceso completado. Revisa el log si hubo errores.";
+$branch = "master"; // La rama que quieres desplegar
 
 // 1. Obtener la firma de GitHub
 $signature = $_SERVER['HTTP_X_HUB_SIGNATURE'] ?? null;
