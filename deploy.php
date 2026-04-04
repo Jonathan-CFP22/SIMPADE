@@ -2,7 +2,8 @@
 // 1. CONFIGURACIÓN
 $path = "/var/www/escobar"; 
 $secret = "qweASD*+*36741506"; // Asegúrate que en GitHub dice exactamente esto en "Secret"
-$log_file = "deploy_log.txt";
+$path = dirname(__FILE__); 
+$log_file = $path . "/deploy_log.txt";
 
 // 2. VALIDACIÓN DE SEGURIDAD (Debe ir PRIMERO)
 $signature = $_SERVER['HTTP_X_HUB_SIGNATURE_256'] ?? $_SERVER['HTTP_X_HUB_SIGNATURE'] ?? null;
